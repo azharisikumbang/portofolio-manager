@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,12 +14,19 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
+Route::group(['prefix' => 'admin', 'middleware' => ['auth']], function() {
+	Route::resource('settings', Admin\SettingController::class);
+	Route::resource('educations', Admin\EducationController::class);
+	Route::resource('skills', Admin\SkillController::class);
+	
+	Route::group(['prefix' => 'me'], function() {
+		Route::get('/', [Admin\AboutController::class, 'index'])->name('about.index');
+		Route::get('/create', [Admin\AboutController::class, 'create'])->name('about.create');
+		Route::get('/edit', [Admin\AboutController::class, 'edit'])->name('about.edit');
+		
+		Route::post('/', [Admin\AboutController::class, 'store'])->name('about.store');
+		Route::put('/', [Admin\AboutController::class, 'update'])->name('about.store');
+	});
 });
-
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth'])->name('dashboard');
 
 require __DIR__.'/auth.php';
