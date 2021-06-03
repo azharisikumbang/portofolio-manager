@@ -32,7 +32,7 @@ class EducationCreationTest extends TestCase
         return User::factory()->create();
     }
 
-    public function test_education_creation_screen_can_be_rendered()
+    public function test_create_screen_can_be_rendered()
     {
         $response = $this->actingAs($this->_actor())
                         ->get('admin/educations/create');
@@ -49,7 +49,7 @@ class EducationCreationTest extends TestCase
         $response->assertRedirect('login');
     }
 
-    public function test_should_store_valid_request_values_to_database()
+    public function test_users_can_stote_valid_values()
     {
         $freshRowOnDatabase = Education::first();
 
@@ -73,7 +73,7 @@ class EducationCreationTest extends TestCase
         $response->assertRedirect('admin/educations');
     }
 
-    public function test_should_ignore_to_store_data_to_database_when_send_invalid_request_values()
+    public function test_users_can_not_store_with_invalid_values()
     {
         $freshRowOnDatabase = Education::first();
 
@@ -83,7 +83,6 @@ class EducationCreationTest extends TestCase
             'institution' => null,
             'degree' => null,
             'start_period' => null,
-            'end_period' => null
         ];
 
         $response = $this->actingAs($this->_actor())
@@ -96,7 +95,7 @@ class EducationCreationTest extends TestCase
         $this->assertEquals(0, $rowOnDatabase->count());
     }
 
-    public function test_should_has_error_messages_when_send_invalid_request_values()
+    public function test_users_should_get_error_messages_when_failed_to_store_data()
     {
         $invalidSampleData = [
             'institution' => null,

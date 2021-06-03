@@ -44,16 +44,14 @@ class EducationTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_redirect_unauthenticated_user()
+    public function test_users_should_be_redirected_when_unauthenticated()
     {
         $response = $this->get('admin/educations');
         $response->assertRedirect('login');
     }
 
-    public function test_data_was_paginatate_on_passed_data_to_view()
+    public function test_users_should_get_paginated_data()
     {
-        $this->withoutExceptionHandling();
-
         Education::factory()->count(20)->create();
         $user = User::factory()->create();
         $response = $this->actingAs($user)->get('admin/educations');
@@ -78,10 +76,8 @@ class EducationTest extends TestCase
         $response->assertViewIs('admin.education.index');
     }
 
-    public function test_pagination_return_max_10_rows()
+    public function test_users_should_get_max_10_rows_as_default_on_paginated_page()
     {
-        $this->withoutExceptionHandling();
-
         Education::factory()->count(20)->create();
 
         $user = User::factory()->create();
@@ -90,7 +86,7 @@ class EducationTest extends TestCase
         $response->assertViewHas('per_page', 10);
     }
 
-    public function test_pagination_limit_works_dynamically()
+    public function test_users_can_set_pagination_limit_dynamically()
     {
         Education::factory()->count(20)->create();
 
@@ -101,10 +97,30 @@ class EducationTest extends TestCase
         $response->assertViewHas('per_page', $perPage);
     }
 
-    public function test_order_data_by_given_key_as_ascending()
+    public function test_users_can_order_by_given_key()
     {
-        $this->withoutExceptionHandling();
+        $exampleGivenKey = 'institution';
 
+        for ($i=9; $i > 0; $i--) { 
+            Education::create([
+                'institution' => '#' . $i,
+                'degree' => $this->faker->word(),
+                'start_period' => $this->faker->date(),
+                'end_period' => $this->faker->date()
+            ]);
+        }
+
+        $user = User::factory()->create();
+        $response = $this->actingAs($user)->get("admin/educations?order_by={$exampleGivenKey}");
+
+        $viewData = $response->viewData('data');
+
+        $this->assertEquals('#1', $viewData[0]['institution']);
+        $this->assertEquals('#2', $viewData[1]['institution']);
+    }
+
+    public function test_users_can_order_by_given_key_as_descending()
+    {
         $exampleGivenKey = 'institution';
 
         for ($i=9; $i > 0; $i--) { 
@@ -125,10 +141,8 @@ class EducationTest extends TestCase
         $this->assertEquals('#2', $viewData[1]['institution']);
     }
 
-    public function test_order_data_by_given_key_as_descending()
+    public function test_users_can_order_data_by_given_key_as_descending()
     {
-        $this->withoutExceptionHandling();
-
         $exampleGivenKey = 'institution';
 
         for ($i=0; $i < 10; $i++) { 
@@ -149,7 +163,7 @@ class EducationTest extends TestCase
         $this->assertEquals('#8', $viewData[1]['institution']);
     }
 
-    public function test_return_only_a_row_on_detail_page()
+    public function test_users_only_can_listen_to_a_row_on_detail_page()
     {
         $user = User::factory()->create();
 
@@ -180,7 +194,7 @@ class EducationTest extends TestCase
         $this->assertEquals($end_period, $viewData->end_period);
     }
 
-    public function test_return_not_found_status_for_not_found_data()
+    public function test_users_should_get_not_found_on_unavailable_data()
     {
         $user = User::factory()->create();
 

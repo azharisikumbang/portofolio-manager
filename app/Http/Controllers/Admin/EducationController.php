@@ -20,7 +20,7 @@ class EducationController extends Controller
         $httpRequestAttributes = request()->toArray();
         $perPage = $httpRequestAttributes['limit'] ?? 10;
         $educations = Education::when(
-            isset($httpRequestAttributes['order_by']) && isset($httpRequestAttributes['order_as']),
+            isset($httpRequestAttributes['order_by']),
             Paginator::paginateByOrderAttribute(
                 $httpRequestAttributes['order_by'] ?? 'id', 
                 $httpRequestAttributes['order_as'] ?? null)
@@ -49,7 +49,7 @@ class EducationController extends Controller
     public function store(EducationPostRequest $request)
     {
         Education::create($request->validated());
-        
+
         return redirect()->route('educations.index');
     }
 
@@ -88,9 +88,16 @@ class EducationController extends Controller
      */
     public function update(EducationPostRequest $request, $id)
     {
-        Education::updatee($request->validated());
-        
-        return redirect()->route('admin.education.index');
+        $isUpdated = Education::findOrFail($id)
+                        ->update($request->validated());
+
+        if (!$isUpdated) {
+            return redirect()->route('educations.edit')->withInput();
+        }
+
+        return redirect()
+            ->route('educations.show', ['education' => $id])
+            ->with('status', 'Education updated succesfully.');
     }
 
     /**
@@ -104,6 +111,6 @@ class EducationController extends Controller
         $education = Education::findOrFail($id);
         $education->delete();
 
-        return redirect()->route('admin.education.index');
+        return redirect()->route('education.index');
     }
 }
