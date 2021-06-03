@@ -49,7 +49,7 @@ class AboutTest extends TestCase
         About::create($this->_get_sample_data());
 
         $response = $this->actingAs($user)
-                        ->get('admin/about/');
+                        ->get('admin/me/');
 
         $response->assertStatus(200);
     }
@@ -65,7 +65,7 @@ class AboutTest extends TestCase
         $aboutData = About::first();
 
         $response = $this->actingAs($user)
-                        ->get('admin/about/edit/');
+                        ->get('admin/me/edit/');
 
         $response->assertStatus(200);
     }
@@ -78,22 +78,22 @@ class AboutTest extends TestCase
 
         // index page
         $response = $this->actingAs($user)
-                        ->get('admin/about');
+                        ->get('admin/me');
 
-        $response->assertRedirect('admin/about/create');
+        $response->assertRedirect('admin/me/create');
 
         // edit page
         $response = $this->actingAs($user)
-                        ->get('admin/about/edit');
+                        ->get('admin/me/edit');
 
-        $response->assertRedirect('admin/about/create');
+        $response->assertRedirect('admin/me/create');
 
 
         // update
         $response = $this->actingAs($user)
-                        ->get('admin/about/edit', $this->_get_sample_data());
+                        ->get('admin/me/edit', $this->_get_sample_data());
 
-        $response->assertRedirect('admin/about/create');
+        $response->assertRedirect('admin/me/create');
 
     }
 
@@ -124,9 +124,9 @@ class AboutTest extends TestCase
         ];
 
         $response = $this->actingAs($user)
-                        ->post('admin/about/store', $data);
+                        ->post('admin/me', $data);
 
-        $response->assertRedirect('admin/about');
+        $response->assertRedirect('admin/me');
         $response->assertSessionHasNoErrors();
 
         $aboutData = About::first();
@@ -149,9 +149,9 @@ class AboutTest extends TestCase
 
         $user = User::factory()->create();
         $response = $this->actingAs($user)
-                        ->post('admin/about/store', $this->_get_sample_data());
+                        ->post('admin/me', $this->_get_sample_data());
 
-        $response->assertRedirect('admin/about');
+        $response->assertRedirect('admin/me');
         $response->assertSessionHasErrors();
     }
 
@@ -161,7 +161,7 @@ class AboutTest extends TestCase
         $data = [];
 
         $response = $this->actingAs($user)
-                        ->post('admin/about/store', $data);
+                        ->post('admin/me', $data);
 
         $response->assertSessionHasErrors(['name']);
     }
@@ -180,7 +180,7 @@ class AboutTest extends TestCase
         ];
 
         $response = $this->actingAs($user)
-                        ->post('admin/about/store', $data);
+                        ->post('admin/me', $data);
 
         $response->assertSessionHasErrors(['name']);
 
@@ -214,9 +214,9 @@ class AboutTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)
-                        ->put('admin/about/update', $replaceData);
+                        ->put('admin/me', $replaceData);
 
-        $response->assertRedirect('admin/about');
+        $response->assertRedirect('admin/me');
         $response->assertSessionHasNoErrors();
 
         $updatedAboutData = About::first();
@@ -238,21 +238,21 @@ class AboutTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)
-                        ->put('admin/about/update', $invalidRequestData);
+                        ->put('admin/me', $invalidRequestData);
 
         $response->assertSessionHasErrors(['name']);
     }
 
     public function test_trying_to_delete_data_without_user_should_return_method_not_allowed()
     {
-        $response = $this->delete('admin/about');
+        $response = $this->delete('admin/me');
         $response->assertStatus(405);
     }
 
     public function test_trying_to_delete_data_with_user_should_return_method_not_allowed()
     {
         $user = User::factory()->create();
-        $response = $this->actingAs($user)->delete('admin/about');
+        $response = $this->actingAs($user)->delete('admin/me');
         $response->assertStatus(405);
     }
 }

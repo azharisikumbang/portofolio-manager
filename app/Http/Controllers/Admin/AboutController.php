@@ -20,7 +20,7 @@ class AboutController extends Controller
         $aboutData = About::first();
 
         if (is_null($aboutData)) {
-            return redirect()->route('admin.about.create');
+            return redirect()->route('about.create');
         }
 
         return response()->json(true);
@@ -36,7 +36,7 @@ class AboutController extends Controller
         $aboutData = About::first();
 
         if (!is_null($aboutData)) {
-            return redirect()->route('admin.about.index');
+            return redirect()->route('about.index');
         } 
 
         return response()->json(true);
@@ -54,7 +54,7 @@ class AboutController extends Controller
 
         if (!is_null($aboutData)) {
             return redirect()
-                ->route('admin.about.index')
+                ->route('about.index')
                 ->withErrors([
                     'message' => 'Failed to store more than one data. You only has authorize to update existing data.'
                 ]);
@@ -75,7 +75,7 @@ class AboutController extends Controller
             'cv' => $cv->getClientOriginalName()
         ]);
 
-        return redirect()->route('admin.about.index');
+        return redirect()->route('about.index');
     }
 
     /**
@@ -88,7 +88,7 @@ class AboutController extends Controller
         $aboutData = About::first();
 
         if (is_null($aboutData)) {
-            return redirect()->route('admin.about.create');
+            return redirect()->route('about.create');
         }
 
         return response()->json(true);
@@ -106,7 +106,7 @@ class AboutController extends Controller
 
         if (is_null($aboutData)) {
             return redirect()
-                ->route('admin.about.create')
+                ->route('about.create')
                 ->withInput();
         }
 
@@ -125,6 +125,6 @@ class AboutController extends Controller
             'cv' => $cv->getClientOriginalName()
         ]);
 
-        return redirect()->route('admin.about.index');
+        return redirect()->route('about.index');
     }
 }
