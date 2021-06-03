@@ -56,8 +56,6 @@ class AboutTest extends TestCase
 
     public function test_edit_screen_can_be_rendered()
     {
-        $this->withoutExceptionHandling();
-
         $user = User::factory()->create();
 
         About::create($this->_get_schema_data());
@@ -70,10 +68,8 @@ class AboutTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_redirect_to_create_screen_if_there_is_no_about_data()
+    public function test_users_should_be_redirect_to_create_screen_if_no_rows()
     {
-        $this->withoutExceptionHandling();
-
         $user = User::factory()->create();
 
         // index page
@@ -97,7 +93,7 @@ class AboutTest extends TestCase
 
     }
 
-    public function test_store_data_with_valid_values_was_stored_successfully()
+    public function test_users_can_store_valid_values()
     {
         $this->withoutExceptionHandling();
 
@@ -141,10 +137,8 @@ class AboutTest extends TestCase
         
     }
 
-    public function test_data_cannot_more_than_one_row()
+    public function test_users_only_can_store_a_row()
     {
-        $this->withoutExceptionHandling();
-
         About::create($this->_get_schema_data());
 
         $user = User::factory()->create();
@@ -155,7 +149,7 @@ class AboutTest extends TestCase
         $response->assertSessionHasErrors();
     }
 
-    public function test_store_with_empty_request_has_error_messages()
+    public function test_users_cannot_store_empty_data_and_should_return_error_messages()
     {
         $user = User::factory()->create();
         $data = [];
@@ -166,17 +160,11 @@ class AboutTest extends TestCase
         $response->assertSessionHasErrors(['name']);
     }
 
-    public function test_store_with_null_request_values_has_error_messages()
+    public function test_users_can_not_store_without_required_data_and_should_return_error_messages()
     {
         $user = User::factory()->create();
         $data = [
             'name' => null,
-            'email' => null,
-            'photo' => null,
-            'phone' => null,
-            'address' => null,
-            'description' => null,
-            'cv' => null
         ];
 
         $response = $this->actingAs($user)
@@ -186,7 +174,7 @@ class AboutTest extends TestCase
 
     }
 
-    public function test_update_data_with_valid_values_was_updated_succesfully()
+    public function test_users_can_update_the_data()
     {
         $this->withoutExceptionHandling();
 
@@ -230,7 +218,7 @@ class AboutTest extends TestCase
         $this->assertEquals($description, $updatedAboutData->description);
     }
 
-    public function test_update_with_invalid_request_values_has_errors_message()
+    public function test_users_can_not_update_with_invalid_data_and_should_return_error_messages()
     {
         About::create($this->_get_schema_data());
 
@@ -243,13 +231,13 @@ class AboutTest extends TestCase
         $response->assertSessionHasErrors(['name']);
     }
 
-    public function test_trying_to_delete_data_without_user_should_return_method_not_allowed()
+    public function test_users_not_allowed_to_delete_the_data()
     {
         $response = $this->delete('admin/me');
         $response->assertStatus(405);
     }
 
-    public function test_trying_to_delete_data_with_user_should_return_method_not_allowed()
+    public function test_authenticated_users_not_allowed_to_delete_the_data()
     {
         $user = User::factory()->create();
         $response = $this->actingAs($user)->delete('admin/me');
