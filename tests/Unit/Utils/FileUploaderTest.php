@@ -10,7 +10,9 @@ use Illuminate\Http\UploadedFile;
 class FileUploaderTest extends TestCase
 {
     public function test_photo_can_be_uploaded()
-    {
+    {   
+        $this->withoutExceptionHandling();
+
         $imagesStorageLocation = "/images";
     	$file = UploadedFile::fake()->image('image.jpg');
 

@@ -3,14 +3,15 @@
 namespace App\Utils;
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\Exception\UploadException;
 
 class FileUploader 
 {
-	private const LOCATION = 'public/assets/';
+	public const LOCATION = 'public/assets/';
 
-	private static function upload(UploadedFile $file, string $path, string $name) : File
+	public static function upload(UploadedFile $file, string $path, string $name) : File
 	{
 		$isUploaded = $file->storeAs($path, $name);
 
@@ -20,7 +21,26 @@ class FileUploader
 			);
 		}
 
-		return new UploadedFile($path, $name);
+		$fullStorageFolder = (Storage::disk('local'))
+								->getDriver()
+								->getAdapter()
+								->getPathPrefix();
+
+		return new UploadedFile(
+			self::joinPaths($fullStorageFolder, $path, $name), 
+			$name
+		);
+	}
+
+	public static function joinPaths() : string
+	{
+	    $paths = [];
+
+	    foreach (func_get_args() as $arg) {
+	        if ($arg !== '') { $paths[] = $arg; }
+	    }
+
+	    return preg_replace('#/+#','/', join('/', $paths));
 	}
 
 	public static function uploadAsPhoto(File $file) : File 
