@@ -15,7 +15,6 @@ use App\Http\Controllers\Admin;
 */
 
 Route::group(['prefix' => 'admin', 'middleware' => ['auth']], function() {
-	Route::resource('settings', Admin\SettingController::class);
 	Route::resource('educations', Admin\EducationController::class);
 	Route::resource('skills', Admin\SkillController::class);
 	
