@@ -14,32 +14,32 @@ class EducationTest extends TestCase
 
     public function test_education_index_page_can_be_rendered()
     {
-        $user = User::factory()->create();
-        $response = $this->actingAs($user)->get('admin/educations');
+        $this->userSigningIn();
+        $response = $this->get('admin/educations');
 
         $response->assertStatus(200);
     }
 
     public function test_education_detail_page_can_be_rendered()
     {
-        $user = User::factory()->create();
+        $this->userSigningIn();
 
         Education::factory()->create();
 
         $id = (Education::first())->id;
-        $response = $this->actingAs($user)->get("admin/educations/{$id}");
+        $response = $this->get("admin/educations/{$id}");
 
         $response->assertStatus(200);
     }
 
     public function test_education_edit_page_can_be_rendered()
     {
-        $user = User::factory()->create();
+        $this->userSigningIn();
 
         Education::factory()->create();
 
         $id = (Education::first())->id;
-        $response = $this->actingAs($user)->get("admin/educations/{$id}/edit");
+        $response = $this->get("admin/educations/{$id}/edit");
 
         $response->assertStatus(200);
     }
@@ -52,11 +52,12 @@ class EducationTest extends TestCase
 
     public function test_users_should_get_paginated_data()
     {
+        $this->userSigningIn();
+        
         Education::factory()->count(20)->create();
-        $user = User::factory()->create();
-        $response = $this->actingAs($user)->get('admin/educations');
+        $response = $this->get('admin/educations');
 
-        $expectedViewPaginationKeys = [
+        $paginationKeys = [
             'current_page',
             'data',
             'first_page_url',
@@ -72,7 +73,7 @@ class EducationTest extends TestCase
             'total'
         ];
 
-        $response->assertViewHasAll($expectedViewPaginationKeys);
+        $response->assertViewHasAll($paginationKeys);
         $response->assertViewIs('admin.education.index');
     }
 
@@ -80,8 +81,8 @@ class EducationTest extends TestCase
     {
         Education::factory()->count(20)->create();
 
-        $user = User::factory()->create();
-        $response = $this->actingAs($user)->get("admin/educations");
+        $this->userSigningIn();
+        $response = $this->get("admin/educations");
 
         $response->assertViewHas('per_page', 10);
     }
@@ -90,9 +91,9 @@ class EducationTest extends TestCase
     {
         Education::factory()->count(20)->create();
 
-        $user = User::factory()->create();
+        $this->userSigningIn();
         $perPage = 5;
-        $response = $this->actingAs($user)->get("admin/educations?limit={$perPage}");
+        $response = $this->get("admin/educations?limit={$perPage}");
 
         $response->assertViewHas('per_page', $perPage);
     }
@@ -110,8 +111,8 @@ class EducationTest extends TestCase
             ]);
         }
 
-        $user = User::factory()->create();
-        $response = $this->actingAs($user)->get("admin/educations?order_by={$exampleGivenKey}");
+        $this->userSigningIn();
+        $response = $this->get("admin/educations?order_by={$exampleGivenKey}");
 
         $viewData = $response->viewData('data');
 
@@ -132,8 +133,8 @@ class EducationTest extends TestCase
             ]);
         }
 
-        $user = User::factory()->create();
-        $response = $this->actingAs($user)->get("admin/educations?order_by={$exampleGivenKey}&order_as=ASC");
+        $this->userSigningIn();
+        $response = $this->get("admin/educations?order_by={$exampleGivenKey}&order_as=ASC");
 
         $viewData = $response->viewData('data');
 
@@ -154,8 +155,8 @@ class EducationTest extends TestCase
             ]);
         }
 
-        $user = User::factory()->create();
-        $response = $this->actingAs($user)->get("admin/educations?order_by={$exampleGivenKey}&order_as=DESC");
+        $this->userSigningIn();
+        $response = $this->get("admin/educations?order_by={$exampleGivenKey}&order_as=DESC");
 
         $viewData = $response->viewData('data');
 
@@ -163,24 +164,16 @@ class EducationTest extends TestCase
         $this->assertEquals('#8', $viewData[1]['institution']);
     }
 
-    public function test_users_only_can_listen_to_a_row_on_detail_page()
+    public function test_users_only_retrive_a_row_on_detail_page()
     {
-        $user = User::factory()->create();
+        $this->userSigningIn();
 
-        $institution = $this->faker->company();
-        $degree = $this->faker->word();
-        $start_period = $this->faker->date();
-        $end_period = $this->faker->date();
+        $education = $this->getDataFromFactory(Education::class);
 
-        Education::create([
-            'institution' => $institution,
-            'degree' => $degree,
-            'start_period' => $start_period,
-            'end_period' => $end_period
-        ]);
+        Education::create($education);
 
         $id = (Education::first())->id;
-        $response = $this->actingAs($user)->get("admin/educations/{$id}");
+        $response = $this->get("admin/educations/{$id}");
 
         $response->assertStatus(200);
         $response->assertViewHas('education');
@@ -188,22 +181,22 @@ class EducationTest extends TestCase
         $viewData = $response->viewData('education');
 
         $this->assertEquals(1, $viewData->count());
-        $this->assertEquals($institution, $viewData->institution);
-        $this->assertEquals($degree, $viewData->degree);
-        $this->assertEquals($start_period, $viewData->start_period);
-        $this->assertEquals($end_period, $viewData->end_period);
+        $this->assertEquals($education['institution'], $viewData->institution);
+        $this->assertEquals($education['degree'], $viewData->degree);
+        $this->assertEquals($education['start_period'], $viewData->start_period);
+        $this->assertEquals($education['end_period'], $viewData->end_period);
     }
 
     public function test_users_should_get_not_found_on_unavailable_data()
     {
-        $user = User::factory()->create();
+        $this->userSigningIn();
 
         // detail page
-        $detailPageResponse = $this->actingAs($user)->get("admin/educations/1");
+        $detailPageResponse = $this->get("admin/educations/1");
         $detailPageResponse->assertNotFound();
 
         // editing page
-        $editingPageResponse = $this->actingAs($user)->get("admin/educations/1/edit");
+        $editingPageResponse = $this->get("admin/educations/1/edit");
         $editingPageResponse->assertNotFound();
     }
 

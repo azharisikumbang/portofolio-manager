@@ -12,40 +12,24 @@ class EducationManipulationTest extends TestCase
 {
 	use RefreshDatabase, WithFaker;
 
-	private function _get_actor()
-	{
-		return User::factory()->create();
-	}
-
 	public function test_unauthenticated_users_should_be_redirect_to_login_page()
 	{
-		$response = $this->put("admin/educations/1", [
-			'institution' => 'An institution',
-            'degree' => 'Bachelor Degree',
-            'start_period' => date('2015-01-01'),
-            'end_period' => date('2020-01-01')
-		]);
+		$response = $this->put("admin/educations/1", $this->getDataFromFactory(Education::class));
 
 		$response->assertRedirect('/login');
 		$this->assertGuest();
-
 	}
 
 	public function test_users_can_update_the_data_and_has_success_message()
 	{
-		$user = $this->_get_actor();
+		$this->userSigningIn();
 		Education::factory()->create();
 
-		$newEducationData = [
-			'institution' => 'An institution',
-            'degree' => 'Bachelor Degree',
-            'start_period' => date('2015-01-01'),
-            'end_period' => date('2020-01-01')
-		];
+		$editEducationRequestData = $this->getDataFromFactory(Education::class);
 
 		$existingEducationId = (Education::first())->id; 
 
-		$response = $this->actingAs($user)->put("admin/educations/${existingEducationId}", $newEducationData);
+		$response = $this->put("admin/educations/${existingEducationId}", $editEducationRequestData);
 
 		$response->assertRedirect("admin/educations/{$existingEducationId}");
 		$response->assertSessionHas('status');
@@ -55,26 +39,21 @@ class EducationManipulationTest extends TestCase
 
 		$this->assertNotNull($updatedRow);
 
-		$this->assertEquals($newEducationData['institution'], $updatedRow->institution);
-		$this->assertEquals($newEducationData['degree'], $updatedRow->degree);
-		$this->assertEquals($newEducationData['start_period'], date('Y-m-d', strtotime($updatedRow->start_period)) );
-		$this->assertEquals($newEducationData['end_period'], date('Y-m-d', strtotime($updatedRow->end_period)) );
+		$this->assertEquals($editEducationRequestData['institution'], $updatedRow->institution);
+		$this->assertEquals($editEducationRequestData['degree'], $updatedRow->degree);
+		$this->assertEquals($editEducationRequestData['start_period'], date('Y-m-d', strtotime($updatedRow->start_period)) );
+		$this->assertEquals($editEducationRequestData['end_period'], date('Y-m-d', strtotime($updatedRow->end_period)) );
 	}
 
 	public function test_users_can_not_update_data_with_invalid_request_values_and_redirect_with_error_messages()
 	{	
-		$user = $this->_get_actor();
+		$this->userSigningIn();
 
-		$definedData = [
-			'institution' => 'An institution',
-            'degree' => 'Bachelor Degree',
-            'start_period' => date('2015-01-01'),
-            'end_period' => date('2020-01-01')
-		];
+		$education = $this->getDataFromFactory(Education::class);
 
-		Education::create($definedData);
+		Education::create($education);
 
-		$newEducationData = [
+		$invalidEducationRequestData = [
 			'institution' => null,
             'degree' => null,
             'start_period' => null,
@@ -82,31 +61,26 @@ class EducationManipulationTest extends TestCase
 
 		$existingEducationId = (Education::first())->id; 
 
-		$response = $this->actingAs($user)->put("admin/educations/${existingEducationId}", $newEducationData);
+		$response = $this->put("admin/educations/${existingEducationId}", $invalidEducationRequestData);
 
 		$response->assertRedirect();
 		$response->assertSessionHasErrors(['institution', 'degree', 'start_period']);
 
-		$updatedRow = Education::find($existingEducationId);
+		$updatedEducationData = Education::find($existingEducationId);
 
-		$this->assertNotNull($updatedRow);
+		$this->assertNotNull($updatedEducationData);
 
-		$this->assertEquals($definedData['institution'], $updatedRow->institution);
-		$this->assertEquals($definedData['degree'], $updatedRow->degree);
-		$this->assertEquals($definedData['start_period'], date('Y-m-d', strtotime($updatedRow->start_period)) );
-		$this->assertEquals($definedData['end_period'], date('Y-m-d', strtotime($updatedRow->end_period)) );
+		$this->assertEquals($education['institution'], $updatedEducationData->institution);
+		$this->assertEquals($education['degree'], $updatedEducationData->degree);
+		$this->assertEquals($education['start_period'], date('Y-m-d', strtotime($updatedEducationData->start_period)) );
+		$this->assertEquals($education['end_period'], date('Y-m-d', strtotime($updatedEducationData->end_period)) );
 	}
 
 	public function test_users_can_not_update_unavailable_row()
 	{
-		$user = $this->_get_actor();
+		$this->userSigningIn();
 
-		$response = $this->actingAs($user)->put("admin/educations/1", [
-			'institution' => 'An institution',
-            'degree' => 'Bachelor Degree',
-            'start_period' => date('2015-01-01'),
-            'end_period' => date('2020-01-01')
-		]);
+		$response = $this->put("admin/educations/1", $this->getDataFromFactory(Education::class));
 
 		$response->assertNotFound();
 

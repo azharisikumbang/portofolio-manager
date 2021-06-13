@@ -13,81 +13,52 @@ class AboutTest extends TestCase
 {
     use RefreshDatabase, WithFaker;
 
-    private function _get_sample_data()
-    {
-        return [
-            'name' => $this->faker->name(),
-            'email' => $this->faker->unique()->safeEmail(),
-            'photo' => UploadedFile::fake()->image('image.jpg'),
-            'phone' => $this->faker->phoneNumber(),
-            'address' => $this->faker->address(),
-            'description' => $this->faker->sentence(),
-            'cv' => UploadedFile::fake()->create('cv.pdf', 1024, 'application/pdf')
-        ];
-    }
-
-    private function _get_schema_data()
-    {
-        return [
-            'name' => $this->faker->name(),
-            'email' => $this->faker->unique()->safeEmail(),
-            'photo' => (UploadedFile::fake()->image('image.jpg'))->getClientOriginalName(),
-            'phone' => $this->faker->phoneNumber(),
-            'address' => $this->faker->address(),
-            'description' => $this->faker->sentence(),
-            'cv' => (UploadedFile::fake()->create('cv.pdf', 1024, 'application/pdf'))->getClientOriginalName()
-        ];
-    }
-
     public function test_about_screen_can_be_rendered()
     {
-        $user = User::factory()->create();
+        $this->userSigningIn();
 
-        $image = UploadedFile::fake()->image('image.jpg');
-        $cv = UploadedFile::fake()->create('cv.pdf', 1024, 'application/pdf');
+        About::create($this->getDataFromFactory(About::class));
 
-        About::create($this->_get_sample_data());
-
-        $response = $this->actingAs($user)
-                        ->get('admin/me/');
+        $response = $this->get('admin/me/');
 
         $response->assertStatus(200);
     }
 
     public function test_edit_screen_can_be_rendered()
     {
-        $user = User::factory()->create();
+        $this->userSigningIn();
 
-        About::create($this->_get_schema_data());
+        About::create($this->getDataFromFactory(About::class));
 
         $aboutData = About::first();
 
-        $response = $this->actingAs($user)
-                        ->get('admin/me/edit/');
+        $response = $this->get('admin/me/edit/');
 
         $response->assertStatus(200);
     }
 
-    public function test_users_should_be_redirect_to_create_screen_if_no_rows()
+    public function test_users_should_be_redirect_to_create_screen_if_there_is_no_existing_row()
     {
-        $user = User::factory()->create();
+        $this->withoutExceptionHandling();
+        $this->userSigningIn();
 
         // index page
-        $response = $this->actingAs($user)
-                        ->get('admin/me');
+        $response = $this->get('admin/me');
 
         $response->assertRedirect('admin/me/create');
 
         // edit page
-        $response = $this->actingAs($user)
-                        ->get('admin/me/edit');
+        $response = $this->get('admin/me/edit');
 
         $response->assertRedirect('admin/me/create');
 
-
         // update
-        $response = $this->actingAs($user)
-                        ->get('admin/me/edit', $this->_get_sample_data());
+        $data = $this->getDataFromFactory(About::class, [
+            'photo' => UploadedFile::fake()->image('image.jpg'),
+            'cv' => UploadedFile::fake()->create('cv.pdf', 1024, 'application/pdf')
+        ]);
+
+        $response = $this->put('admin/me', $data);
 
         $response->assertRedirect('admin/me/create');
 
@@ -95,55 +66,39 @@ class AboutTest extends TestCase
 
     public function test_users_can_store_valid_values()
     {
-        $this->withoutExceptionHandling();
+        $this->userSigningIn();
 
-        $user = User::factory()->create();
+        $requestData = $this->getDataFromFactory(About::class, [
+            'photo' => UploadedFile::fake()->image('image.jpg'),
+            'cv' => UploadedFile::fake()->create('cv.pdf', 1024, 'application/pdf')
+        ]);
 
-        $image = UploadedFile::fake()->image('image.jpg');
-        $cv = UploadedFile::fake()->create('cv.pdf', 1024, 'application/pdf');
-
-        $name = $this->faker->name();
-        $email = $this->faker->unique()->safeEmail();
-        $phone = $this->faker->phoneNumber();
-        $address = $this->faker->address();
-        $description = $this->faker->sentence();
-
-
-        $data = [
-            'name' => $name,
-            'email' => $email,
-            'photo' => $image,
-            'phone' => $phone,
-            'address' => $address,
-            'description' => $description,
-            'cv' => $cv
-        ];
-
-        $response = $this->actingAs($user)
-                        ->post('admin/me', $data);
+        $response = $this->post('admin/me', $requestData);
 
         $response->assertRedirect('admin/me');
         $response->assertSessionHasNoErrors();
 
-        $aboutData = About::first();
+        $recordOnDatabase = About::first();
 
-        $this->assertNotNull($aboutData);
+        $this->assertNotNull($recordOnDatabase);
 
-        $this->assertEquals($name, $aboutData->name);
-        $this->assertEquals($email, $aboutData->email);
-        $this->assertEquals($phone, $aboutData->phone);
-        $this->assertEquals($address, $aboutData->address);
-        $this->assertEquals($description, $aboutData->description);
+        $this->assertEquals($requestData['name'], $recordOnDatabase->name);
+        $this->assertEquals($requestData['email'], $recordOnDatabase->email);
+        $this->assertEquals($requestData['phone'], $recordOnDatabase->phone);
+        $this->assertEquals($requestData['address'], $recordOnDatabase->address);
+        $this->assertEquals($requestData['description'], $recordOnDatabase->description);
         
     }
 
     public function test_users_only_can_store_a_row()
     {
-        About::create($this->_get_schema_data());
-
-        $user = User::factory()->create();
-        $response = $this->actingAs($user)
-                        ->post('admin/me', $this->_get_sample_data());
+        $this->userSigningIn();
+        About::create($this->getDataFromFactory(About::class));
+        
+        $response = $this->post('admin/me', $this->getDataFromFactory(About::class, [
+            'photo' => UploadedFile::fake()->image('image.jpg'),
+            'cv' => UploadedFile::fake()->create('cv.pdf', 1024, 'application/pdf')
+        ]));
 
         $response->assertRedirect('admin/me');
         $response->assertSessionHasErrors();
@@ -151,24 +106,22 @@ class AboutTest extends TestCase
 
     public function test_users_cannot_store_empty_data_and_should_return_error_messages()
     {
-        $user = User::factory()->create();
+        $this->userSigningIn();
         $data = [];
 
-        $response = $this->actingAs($user)
-                        ->post('admin/me', $data);
+        $response = $this->post('admin/me', $data);
 
         $response->assertSessionHasErrors(['name']);
     }
 
     public function test_users_can_not_store_without_required_data_and_should_return_error_messages()
     {
-        $user = User::factory()->create();
+        $this->userSigningIn();
         $data = [
             'name' => null,
         ];
 
-        $response = $this->actingAs($user)
-                        ->post('admin/me', $data);
+        $response = $this->post('admin/me', $data);
 
         $response->assertSessionHasErrors(['name']);
 
@@ -176,33 +129,16 @@ class AboutTest extends TestCase
 
     public function test_users_can_update_the_data()
     {
-        $this->withoutExceptionHandling();
+        $this->userSigningIn();
 
-        About::create($this->_get_schema_data());
+        About::create($this->getDataFromFactory(About::class));
 
-        $name = $this->faker->name();
-        $email = $this->faker->unique()->safeEmail();
-        $phone = $this->faker->phoneNumber();
-        $address = $this->faker->address();
-        $description = $this->faker->sentence();
+        $editRequestData = $this->getDataFromFactory(About::class, [
+            'photo' => UploadedFile::fake()->image('image.jpg'),
+            'cv' => UploadedFile::fake()->create('cv.pdf', 1024, 'application/pdf')
+        ]);
 
-        $newImage = UploadedFile::fake()->image('new_image.jpg');
-        $newCv = UploadedFile::fake()->create('new_cv.pdf', 1024, 'application/pdf');
-
-        $replaceData = [
-            'name' => $name,
-            'email' => $email,
-            'photo' => $newImage,
-            'phone' => $phone,
-            'address' => $address,
-            'description' => $description,
-            'cv' => $newCv,
-        ];
-
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($user)
-                        ->put('admin/me', $replaceData);
+        $response = $this->put('admin/me', $editRequestData);
 
         $response->assertRedirect('admin/me');
         $response->assertSessionHasNoErrors();
@@ -211,22 +147,20 @@ class AboutTest extends TestCase
 
         $this->assertNotNull($updatedAboutData);
 
-        $this->assertEquals($name, $updatedAboutData->name);
-        $this->assertEquals($email, $updatedAboutData->email);
-        $this->assertEquals($phone, $updatedAboutData->phone);
-        $this->assertEquals($address, $updatedAboutData->address);
-        $this->assertEquals($description, $updatedAboutData->description);
+        $this->assertEquals($editRequestData['name'], $updatedAboutData->name);
+        $this->assertEquals($editRequestData['email'], $updatedAboutData->email);
+        $this->assertEquals($editRequestData['phone'], $updatedAboutData->phone);
+        $this->assertEquals($editRequestData['address'], $updatedAboutData->address);
+        $this->assertEquals($editRequestData['description'], $updatedAboutData->description);
     }
 
     public function test_users_can_not_update_with_invalid_data_and_should_return_error_messages()
     {
-        About::create($this->_get_schema_data());
+        $this->userSigningIn();
+        About::create($this->getDataFromFactory(About::class));
 
         $invalidRequestData = [];
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($user)
-                        ->put('admin/me', $invalidRequestData);
+        $response = $this->put('admin/me', $invalidRequestData);
 
         $response->assertSessionHasErrors(['name']);
     }
@@ -239,8 +173,8 @@ class AboutTest extends TestCase
 
     public function test_authenticated_users_not_allowed_to_delete_the_data()
     {
-        $user = User::factory()->create();
-        $response = $this->actingAs($user)->delete('admin/me');
+        $this->userSigningIn();
+        $response = $this->delete('admin/me');
         $response->assertStatus(405);
     }
 }
