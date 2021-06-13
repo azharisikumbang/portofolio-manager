@@ -24,7 +24,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth']], function() {
 		Route::get('/edit', [Admin\AboutController::class, 'edit'])->name('about.edit');
 		
 		Route::post('/', [Admin\AboutController::class, 'store'])->name('about.store');
-		Route::put('/', [Admin\AboutController::class, 'update'])->name('about.store');
+		Route::put('/', [Admin\AboutController::class, 'update'])->name('about.update');
 	});
 });
 
