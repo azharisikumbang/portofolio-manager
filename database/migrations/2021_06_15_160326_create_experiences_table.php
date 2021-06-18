@@ -17,7 +17,7 @@ class CreateExperiencesTable extends Migration
             $table->id();
             $table->string('company');
             $table->string('position');
-            $table->text('details');
+            $table->text('detail');
             $table->date('start_period');
             $table->date('end_period')->nullable();
             $table->timestamps();

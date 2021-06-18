@@ -24,7 +24,7 @@ class ExperienceFactory extends Factory
         return [
             'company' => $this->faker->company(),
             'position' => $this->faker->jobTitle(),
-            'details' => $this->faker->sentence(),
+            'detail' => $this->faker->sentence(),
             'start_period' => $this->faker->date()
         ];
     }

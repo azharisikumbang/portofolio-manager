@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ExperienceRequest;
 use App\Models\Experience;
 use App\Utils\Paginator;
 use Illuminate\Http\Request;
@@ -45,9 +46,19 @@ class ExperienceController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ExperienceRequest $request)
     {
-        //
+        $isCreated = Experience::create($request->validated());
+
+        if (!$isCreated) {
+            return back()
+                ->with(['status' => 'failed', 'messages' => 'Failed to store data.'])
+                ->withInput();
+        }
+
+        return redirect()
+            ->route('experiences.index')
+            ->with(['status' => 'success', 'messages' => 'Succcessfully created.']);
     }
 
     /**
@@ -79,9 +90,19 @@ class ExperienceController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(ExperienceRequest $request, $id)
     {
-        //
+        $isUpdated = Experience::findOrFail($id)->update($request->validated());
+
+        if (!$isUpdated) {
+            return back()
+                ->with(['status' => 'failed', 'messages' => 'Failed to update the data.'])
+                ->withInput();
+        }
+
+        return redirect()
+            ->route('experiences.index')
+            ->with(['status' => 'success', 'messages' => 'Succcessfully updated.']);
     }
 
     /**
@@ -92,6 +113,10 @@ class ExperienceController extends Controller
      */
     public function destroy($id)
     {
-        //
+        Experience::findOrFail($id)->delete();
+
+        return redirect()
+            ->route('experiences.index')
+            ->with(['status' => 'success', 'messages' => 'Succcessfully deleted.']);
     }
 }
