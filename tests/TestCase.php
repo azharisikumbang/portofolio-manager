@@ -5,6 +5,7 @@ namespace Tests;
 use App\Models\User;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Testing\TestResponse;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -42,5 +43,34 @@ abstract class TestCase extends BaseTestCase
          }
 
          return $count > 1 ? $results : $results[0];
+      }
+
+      protected function assertPaginated(TestResponse $response, ?array $config = null) 
+      {
+         $paginationKeys = [
+            'current_page',
+            'data',
+            'first_page_url',
+            'from',
+            'last_page',
+            'last_page_url',
+            'links',
+            'next_page_url',
+            'path',
+            'per_page',
+            'prev_page_url',
+            'to',
+            'total'
+        ];
+
+        if ($config) {
+           foreach ($config as $key => $value) {
+              if (in_array(strtolower($key), $paginationKeys)) {
+                 $response->assertViewHas($key, $value);
+              }
+           }
+        }
+
+        $response->assertViewHasAll($paginationKeys);
       }
 }
