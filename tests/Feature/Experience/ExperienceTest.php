@@ -44,7 +44,7 @@ class ExperienceTest extends TestCase
 		$orderBy = 'company';
 		$orderAs = 'descending';
 
-		$experiences = Experience::factory()->count(10)->make();
+		$experiences = Experience::factory()->count(20)->make();
 		$companies = $experiences->map(function($experience) use ($orderBy) {
 			$experience->save();
 			return $experience->{$orderBy};
@@ -59,7 +59,7 @@ class ExperienceTest extends TestCase
 		$this->assertPaginated($response, ['per_page' => $limit]);
 		$this->assertEquals($limit, count($responseViewData));
 
-		for ($i=0; $i < count($companies); $i++) { 
+		for ($i=0; $i < count($responseViewData); $i++) { 
 			$this->assertEquals($companies[$i], $responseViewData[$i][$orderBy]);
 		}
     }
