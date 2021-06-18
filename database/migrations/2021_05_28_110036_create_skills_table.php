@@ -17,6 +17,7 @@ class CreateSkillsTable extends Migration
             $table->id();
             $table->string('title');
             $table->string('description');
+            $table->string('level');
             $table->timestamps();
         });
     }

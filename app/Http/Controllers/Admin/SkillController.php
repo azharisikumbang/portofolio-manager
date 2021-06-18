@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Request\SkillPostRequest;
+use App\Http\Requests\SkillPostRequest;
+use App\Utils\Paginator;
 use App\Models\Skill;
 use Illuminate\Http\Request;
 
@@ -16,9 +17,17 @@ class SkillController extends Controller
      */
     public function index()
     {
-        $skills = Skill::paginate(10);
+        $httpRequestAttributes = request()->toArray();
+        $perPage = $httpRequestAttributes['limit'] ?? Paginator::OFFSET;
+        $skills = Skill::when(
+            isset($httpRequestAttributes['order_by']),
+            Paginator::paginateByOrderAttribute(
+                $httpRequestAttributes['order_by'] ?? 'id', 
+                $httpRequestAttributes['order_as'] ?? null)
+            )
+            ->paginate($perPage);
 
-        return view();
+        return view('admin.skill.index', $skills->toArray());
     }
 
     /**
@@ -39,9 +48,17 @@ class SkillController extends Controller
      */
     public function store(SkillPostRequest $request)
     {
-        Skill::create($request->validated());
+        $isCreated = Skill::create($request->validated());
 
-        return redirect()->route('admin.skill.index');
+        if (!$isCreated) {
+            return back()
+                ->with(['status' => 'failed', 'messages' => 'Failed to store data.'])
+                ->withInput();
+        }
+
+        return redirect()
+            ->route('skills.index')
+            ->with(['status' => 'success', 'messages' => 'Succcessfully created.']);
     }
 
     /**
@@ -79,9 +96,17 @@ class SkillController extends Controller
      */
     public function update(SkillPostRequest $request, $id)
     {
-        Skill::update($request->validated());
+        $isUpdated = (Skill::findOrFail($id))->update($request->validated());
 
-        return redirect()->route('admin.skill.index');
+        if (!$isUpdated) {
+            return back()
+                ->with(['status' => 'failure', 'messages' => 'Failed to update skill.'])
+                ->withInput();
+        }
+
+        return redirect()
+            ->route('skills.show', ['skill' => $id])
+            ->with(['status' => 'success', 'messages' => 'Skill updated succesfully.']);
     }
 
     /**
@@ -92,9 +117,10 @@ class SkillController extends Controller
      */
     public function destroy($id)
     {
-       $skill = Skill::findOrFail($id);
-       $skill->delete();
+        Skill::findOrFail($id)->delete();
 
-        return redirect()->route('admin.skill.index');
+        return redirect()
+            ->route('skills.index')
+            ->with(['status' => 'success', 'messages' => 'Skill updated succesfully.']);
     }
 }

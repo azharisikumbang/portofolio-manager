@@ -13,7 +13,7 @@ class SkillPostRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,8 +24,9 @@ class SkillPostRequest extends FormRequest
     public function rules()
     {
         return [
-            'title' => 'required|string|max:255|min:3',
-            'description' => 'string|nullable'
+            'title' => 'string|required|max:255|min:3',
+            'level' => 'string|required',
+            'description' => 'string|nullable',
         ];
     }
 }
