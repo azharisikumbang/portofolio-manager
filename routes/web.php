@@ -16,6 +16,9 @@ use App\Http\Controllers\Admin;
 
 Route::group(['prefix' => 'admin', 'middleware' => ['auth']], function() {
 	Route::resource('educations', Admin\EducationController::class);
+	Route::put('educations/{id}/graduated', [Admin\EducationController::class, 'graduated']);
+	
+	Route::resource('experiences', Admin\ExperienceController::class);
 	Route::resource('skills', Admin\SkillController::class);
 	
 	Route::group(['prefix' => 'me'], function() {
@@ -26,6 +29,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth']], function() {
 		Route::post('/', [Admin\AboutController::class, 'store'])->name('about.store');
 		Route::put('/', [Admin\AboutController::class, 'update'])->name('about.update');
 	});
+
 });
 
 require __DIR__.'/auth.php';

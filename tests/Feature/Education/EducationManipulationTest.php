@@ -81,12 +81,44 @@ class EducationManipulationTest extends TestCase
 		$this->userSigningIn();
 
 		$response = $this->put("admin/educations/1", $this->getDataFromFactory(Education::class));
-
 		$response->assertNotFound();
 
 		$educations = Education::all();
-
 		$this->assertEmpty($educations);
 	}
 
+	public function test_users_can_delete_row_by_id_and_has_success_message()
+	{
+		$this->userSigningIn();
+
+		$this->assertEquals(0, Education::all()->count());
+
+		Education::factory()->create();
+		$this->assertEquals(1, Education::all()->count());
+
+		$response = $this->delete("admin/educations/1");
+
+		$this->assertEquals(0, Education::all()->count());
+		$response->assertRedirect("admin/educations");
+		$response->assertSessionHas(["status", "messages"]);
+	}
+
+	public function test_users_can_mark_a_education_as_graduated()
+	{
+		$this->userSigningIn();
+
+		Education::factory()->create(["end_period" => null]);
+
+		$education = Education::first();
+		$this->assertNull($education->end_period);
+
+		$now = date("Y/m/d");
+		$response = $this->put("admin/educations/1/graduated", ["end_period" => $now]);
+
+		$graduatedEducation = Education::first();
+		$this->assertNotNull($graduatedEducation->end_period);
+		$this->assertEquals($now, date("Y/m/d", strtotime($graduatedEducation->end_period)));
+		$response->assertSessionHas([['status', 'messages']]);
+		$response->assertRedirect();
+	}
 }

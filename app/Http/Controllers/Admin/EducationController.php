@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EducationPostRequest;
 use App\Models\Education;
+use App\Http\Requests\EducationMarkAsGraduatedRequest;
 use App\Utils\Paginator;
 use Illuminate\Http\Request;
 
@@ -18,7 +19,7 @@ class EducationController extends Controller
     public function index()
     {
         $httpRequestAttributes = request()->toArray();
-        $perPage = $httpRequestAttributes['limit'] ?? 10;
+        $perPage = $httpRequestAttributes['limit'] ?? Paginator::OFFSET;
         $educations = Education::when(
             isset($httpRequestAttributes['order_by']),
             Paginator::paginateByOrderAttribute(
@@ -50,7 +51,9 @@ class EducationController extends Controller
     {
         Education::create($request->validated());
 
-        return redirect()->route('educations.index');
+        return redirect()
+            ->route('educations.index')
+            ->with(['status' => 'success', 'messages' => ['Successfully to store data.']]);
     }
 
     /**
@@ -97,7 +100,7 @@ class EducationController extends Controller
 
         return redirect()
             ->route('educations.show', ['education' => $id])
-            ->with('status', 'Education updated succesfully.');
+            ->with(['status' => 'success', 'messages' => 'Education updated succesfully.']);
     }
 
     /**
@@ -111,6 +114,22 @@ class EducationController extends Controller
         $education = Education::findOrFail($id);
         $education->delete();
 
-        return redirect()->route('education.index');
+        return redirect()
+            ->route('educations.index')
+            ->with(['status' => 'success', 'messages' => 'Education deleted succesfully.']);
+    }
+
+    public function graduated(EducationMarkAsGraduatedRequest $request, $id)
+    {
+        $redirectMessages = ['status' => 'success', 'messages' => 'Education updated succesfully.'];
+        $isUpdated = Education::findOrFail($id)->update($request->validated());
+
+        if (!$isUpdated) {
+            $redirectMessages = ['status' => 'failure', 'message' => 'failed to mark education as graduated.'];
+        }
+
+        return redirect()
+            ->route('educations.show', ['education' => $id])
+            ->with($redirectMessages);
     }
 }

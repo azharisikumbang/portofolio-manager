@@ -30,7 +30,7 @@ class EducationCreationTest extends TestCase
         $response->assertRedirect('login');
     }
 
-    public function test_users_can_store_valid_education_request()
+    public function test_users_can_store_valid_education_request_and_has_success_message()
     {
         $this->userSigningIn();
 
@@ -51,6 +51,7 @@ class EducationCreationTest extends TestCase
         $this->assertEquals($requestEducationData['end_period'], $educations->first()->end_period);
 
         $response->assertRedirect('admin/educations');
+        $response->assertSessionHas(['status', 'messages']);
     }
 
     public function test_users_can_not_store_with_invalid_education_request()
