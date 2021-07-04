@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\InstallationController;
 use App\Http\Controllers\Admin;
 
 /*
@@ -14,12 +15,15 @@ use App\Http\Controllers\Admin;
 |
 */
 
+// Route::get('/install', [InstallationController::class, 'index'])->name('installation.index');
+
 Route::group(['prefix' => 'admin', 'middleware' => ['auth']], function() {
 	Route::resource('educations', Admin\EducationController::class);
 	Route::put('educations/{id}/graduated', [Admin\EducationController::class, 'graduated']);
 	
 	Route::resource('experiences', Admin\ExperienceController::class);
 	Route::resource('skills', Admin\SkillController::class);
+	Route::resource('certifications', Admin\CertificationController::class);
 	
 	Route::group(['prefix' => 'me'], function() {
 		Route::get('/', [Admin\AboutController::class, 'index'])->name('about.index');
