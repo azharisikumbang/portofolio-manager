@@ -10,4 +10,9 @@ class Skill extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    public function certifications()
+    {
+    	return $this->hasMany(Certification::class);
+    }
 }
