@@ -59,7 +59,7 @@ class FileUploader
 		return self::upload($file, $path, $filename);
 	}
 
-	public static function moveToArchive(string $file) : boolean
+	public static function moveToArchive(string $file) : bool
 	{
 		// todo
 		$file = new UploadedFile($file, self::getPrefix($file));
