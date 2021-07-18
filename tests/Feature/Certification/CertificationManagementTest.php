@@ -125,11 +125,5 @@ class CertificationManagementTest extends TestCase
         $response->assertSessionHasAll(['messages', 'status']);
 
         $this->assertEquals(0, $rowsAfterDeleted);
-    }
-    
-    /** @test */
-    public function relasi()
-    {
-    }
-    
+    }   
 }
