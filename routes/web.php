@@ -1,8 +1,10 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InstallationController;
 use App\Http\Controllers\Admin;
+use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,7 +17,16 @@ use App\Http\Controllers\Admin;
 |
 */
 
-// Route::get('/install', [InstallationController::class, 'index'])->name('installation.index');
+Route::get('/', function () {
+    return Inertia::render('Welcome', [
+        'canLogin' => Route::has('login'),
+        'canRegister' => Route::has('register'),
+        'laravelVersion' => Application::VERSION,
+        'phpVersion' => PHP_VERSION,
+    ]);
+});
+
+Route::get('/install', [InstallationController::class, 'index'])->name('installation.index');
 
 Route::group(['prefix' => 'admin', 'middleware' => ['auth']], function() {
 	Route::resource('educations', Admin\EducationController::class);
